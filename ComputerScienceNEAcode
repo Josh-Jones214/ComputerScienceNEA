@@ -1,0 +1,133 @@
+import sqlite3
+
+--Connect to the database (or create it if it doesn't exist)
+
+conn = sqlite3.connect('my_database.db')
+
+--Create a cursor object to execute SQL commands
+cursor = conn.cursor()
+
+--Create Customers table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Customers (
+    CustomerID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Username TEXT NOT NULL UNIQUE,
+    Password TEXT NOT NULL,
+    Email TEXT NOT NULL UNIQUE,
+    Phone TEXT,
+    MembershipType TEXT,
+    RegistrationDate DATE NOT NULL
+);
+''')
+
+--Create Admins table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Admins (
+    AdminID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Username TEXT NOT NULL UNIQUE,
+    Password TEXT NOT NULL,
+    Email TEXT NOT NULL UNIQUE,
+    Phone TEXT,
+    Privileges TEXT NOT NULL
+);
+''')
+
+--Create Members table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Members (
+    MemberID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CustomerID INTEGER NOT NULL,
+    MembershipStartDate DATE NOT NULL,
+    MembershipEndDate DATE NOT NULL,
+    PaymentInfo TEXT NOT NULL,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID) ON DELETE CASCADE
+);
+''')
+
+--Create Instructors table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Instructors (
+    InstructorID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Bio TEXT,
+    Phone TEXT,
+    Email TEXT
+);
+''')
+
+--Create Classes table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Classes (
+    ClassID INTEGER PRIMARY KEY AUTOINCREMENT,
+    ClassName TEXT NOT NULL,
+    InstructorID INTEGER NOT NULL,
+    Schedule DATETIME NOT NULL,
+    MaxCapacity INTEGER NOT NULL,
+    CurrentCapacity INTEGER DEFAULT 0,
+    FOREIGN KEY (InstructorID) REFERENCES Instructors(InstructorID) ON DELETE SET NULL
+);
+''')
+
+--Create Orders table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Orders (
+    OrderID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CustomerID INTEGER NOT NULL,
+    OrderDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    TotalCost REAL NOT NULL,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID) ON DELETE CASCADE
+);
+''')
+
+--Create Products table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Products (
+    ProductID INTEGER PRIMARY KEY AUTOINCREMENT,
+    ProductName TEXT NOT NULL,
+    Category TEXT NOT NULL,
+    StockQuantity INTEGER NOT NULL,
+    Price REAL NOT NULL
+);
+''')
+
+--Create OrderItems table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS OrderItems (
+    OrderItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+    OrderID INTEGER NOT NULL,
+    ProductID INTEGER NOT NULL,
+    Quantity INTEGER NOT NULL,
+    UnitPrice REAL NOT NULL,
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE CASCADE
+);
+''')
+
+--Create Subscriptions table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Subscriptions (
+    SubscriptionID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CustomerID INTEGER NOT NULL,
+    SubscriptionType TEXT NOT NULL,
+    StartDate DATE NOT NULL,
+    EndDate DATE NOT NULL,
+    Status TEXT NOT NULL,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID) ON DELETE CASCADE
+);
+''')
+
+--Create ClassMembers table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS ClassMembers (
+    ClassMemberID INTEGER PRIMARY KEY AUTOINCREMENT,
+    ClassID INTEGER NOT NULL,
+    MemberID INTEGER NOT NULL,
+    FOREIGN KEY (ClassID) REFERENCES Classes(ClassID) ON DELETE CASCADE,
+    FOREIGN KEY (MemberID) REFERENCES Members(MemberID) ON DELETE CASCADE,
+    UNIQUE (ClassID, MemberID)
+);
+''')
+
+--Commit the changes and close the connection
+conn.commit()
+conn.close()
