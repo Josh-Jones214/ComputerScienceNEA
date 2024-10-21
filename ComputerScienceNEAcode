@@ -1,3 +1,4 @@
+--REMEMBER TO BUT THIS INTO 'TERMINAL' after editing (git commit -m "This is a commit message")
 import sqlite3
 
 --Connect to the database (or create it if it doesn't exist)
